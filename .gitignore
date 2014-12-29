@@ -1,0 +1,5 @@
+.fuse_hidden*
+docs
+vendor
+composer.lock
+bin/dev.php
