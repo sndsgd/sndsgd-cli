@@ -2,6 +2,8 @@
 
 namespace sndsgd\cli\console;
 
+use \sndsgd\cli\Console;
+
 
 class Writer
 { 
@@ -93,7 +95,7 @@ class Writer
     * @param string $stream The output stream to write to
     * @return void
     */
-   public static function write($message, $stream = Output::STDOUT)
+   public static function write($message, $stream = Console::STDOUT)
    {
       $messages = (array) $message;
       $content = '';
