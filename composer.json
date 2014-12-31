@@ -14,18 +14,11 @@
       "issues": "https://github.com/sndsgd/sndsgd-cli/issues",
       "source": "https://github.com/sndsgd/sndsgd-cli/tree/master"
    },
-   "repositories": [
-      {
-         "type": "git",
-         "url": "/Users/russell/Documents/git/sndsgd-app"
-      }
-   ],
    "require": {
       "php": ">=5.4.0",
       "sndsgd/util": "dev-master",
       "sndsgd/event": "dev-master",
-      "sndsgd/field": "dev-master",
-      "sndsgd/app": "dev-master"
+      "sndsgd/field": "dev-master"
    },
    "require-dev": {
       "phpunit/phpunit": "~4.0",
