@@ -10,9 +10,9 @@ class ProcessTest extends PHPUnit_Framework_TestCase
    {
       $root = vfsStream::setup('root');
       vfsStream::newFile('test.txt', 0700)
-         ->at($root)
-         ->chgrp(vfsStream::GROUP_ROOT)
-         ->chown(vfsStream::OWNER_ROOT);
+	 ->at($root)
+	 ->chgrp(vfsStream::GROUP_ROOT)
+	 ->chown(vfsStream::OWNER_ROOT);
 
       return vfsStream::url('root/test.txt');
    }
@@ -158,4 +158,3 @@ class ProcessTest extends PHPUnit_Framework_TestCase
       $this->assertEquals($data['command'], 'pwd');
    }
 }
-

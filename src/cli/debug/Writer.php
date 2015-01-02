@@ -1,19 +1,21 @@
 <?php
 
-namespace sndsgd\cli\console;
-
-use \sndsgd\cli\Console;
+namespace sndsgd\cli\debug;
 
 
-class Writer
-{ 
+class Writer extends \sndsgd\debug\Writer
+{
+   // output streams
+   const STDOUT = 'php://stdout';
+   const STDERR = 'php://stderr';
+
    /**
     * Codes for various styles
-    * 
+    *
     * @see http://misc.flogisoft.com/bash/tip_colors_and_formatting
     * @var array.<string,number>
     */
-   private static $styleCodes = [
+   protected $styleCodes = [
 
       # reset
       'reset' => 0,
@@ -76,33 +78,31 @@ class Writer
    ];
 
    /**
-    * Write a message to a stream, adding color where neccesary
+    * The stream to write output to
     *
-    * Example: write a message in intense red
-    * <code>
-    * $text = 'here is some text';
-    * Output::write("@[bold+red]$text@[reset]"); 
-    * </code>
+    * @var string
+    */
+   protected $stream = self::STDOUT;
+
+   /**
+    * Set the path to the output stream
     *
-    * Example: write white text over a green background
-    * <code>
-    * $text = 'here is some text';
-    * Output::write("@[bg:green+white]$text@[reset]"); 
-    * </code>
-    *
-    * 
-    * @param string|array.<string> The text to output
-    * @param string $stream The output stream to write to
+    * @param string $stream
     * @return void
     */
-   public static function write($message, $stream = Console::STDOUT)
+   public function setStream($stream)
    {
-      $messages = (array) $message;
-      $content = '';
-      foreach ($messages as $message) {
-         $content .= self::applyStyles($message);
+      $this->stream = $stream;
+   }
+
+   /**
+    * {@inheritdoc}
+    */
+   public function write($msg, $code, $force = false)
+   {
+      if ($this->shouldWrite($force, $code)) {
+	 file_put_contents($this->stream, $this->formatMessage($msg));
       }
-      file_put_contents($stream, $content);
    }
 
    /**
@@ -111,29 +111,52 @@ class Writer
     * @param string $content
     * @return string
     */
-   public static function applyStyles($content)
+   private function formatMessage($content)
    {
       $regex = '/@\\[([a-z-:+ ]+)\\]/';
       if (preg_match_all($regex, $content, $matches, PREG_SET_ORDER)) {
-         foreach ($matches as $captures) {
-            $match = $captures[0];
-            $keys = explode('+', $captures[1]);
-            $codes = [];
-            foreach ($keys as $key) {
-               $key = trim($key);
-               if (array_key_exists($key, self::$styleCodes)) {
-                  $codes[] = self::$styleCodes[$key];
-               }
-            }
+	 foreach ($matches as $captures) {
+	    $match = $captures[0];
+	    $keys = explode('+', $captures[1]);
+	    $codes = [];
+	    foreach ($keys as $key) {
+	       $key = trim($key);
+	       if (array_key_exists($key, $this->styleCodes)) {
+		  $codes[] = $this->styleCodes[$key];
+	       }
+	    }
 
-            if ($codes) {
-               $replace = "\033[".implode(';', $codes).'m';
-               $content = str_replace($match, $replace, $content);
-            }
-         }
+	    if ($codes) {
+	       $replace = "\033[".implode(';', $codes).'m';
+	       $content = str_replace($match, $replace, $content);
+	    }
+	 }
       }
-
       return $content;
    }
-}
 
+   /**
+    * {@inheritdoc}
+    */
+   public function info($msg, $verboseLevel)
+   {
+      $this->write($msg, $verboseLevel);
+   }
+
+   /**
+    * {@inheritdoc}
+    */
+   public function warn($msg, $verboseLevel)
+   {
+      $this->write("@[bg:yellow+black+bold] Warning @[reset] $msg", $verboseLevel);
+   }
+
+   /**
+    * {@inheritdoc}
+    */
+   public function error($msg, $exitcode)
+   {
+      $this->write("@[bg:red+white+bold] Error @[reset] $msg", $exitcode, true);
+      ($exitcode !== null) && exit($exitcode);
+   }
+}

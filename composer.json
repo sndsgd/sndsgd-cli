@@ -18,7 +18,9 @@
       "php": ">=5.4.0",
       "sndsgd/util": "dev-master",
       "sndsgd/event": "dev-master",
-      "sndsgd/field": "dev-master"
+      "sndsgd/field": "dev-master",
+      "sndsgd/debug": "dev-master",
+      "sndsgd/task": "dev-master"
    },
    "require-dev": {
       "phpunit/phpunit": "~4.0",
@@ -26,7 +28,7 @@
    },
    "autoload": {
       "psr-4": {
-         "sndsgd\\cli\\": "src/"
+	 "sndsgd\\": "src/"
       }
    }
 }

@@ -36,17 +36,17 @@ class Command extends \sndsgd\util\Singleton
    {
       $instance = self::getInstance();
       if (array_key_exists($name, $instance->paths)) {
-         return $instance->paths[$name];
+	 return $instance->paths[$name];
       }
       else {
-         foreach ($instance->dirs as $dir) {
-            $path = $dir.DIRECTORY_SEPARATOR.$name;
-            if (file_exists($path) && is_executable($path)) {
-               $instance->addPath($name, $path);
-               return $path;
-            }
-         }
-         throw new Exception("failed to locate binary '$name'");
+	 foreach ($instance->dirs as $dir) {
+	    $path = $dir.DIRECTORY_SEPARATOR.$name;
+	    if (file_exists($path) && is_executable($path)) {
+	       $instance->addPath($name, $path);
+	       return $path;
+	    }
+	 }
+	 throw new Exception("failed to locate binary '$name'");
       }
    }
 
@@ -60,20 +60,20 @@ class Command extends \sndsgd\util\Singleton
    public static function addSearchDir($dir, $prepend = false)
    {
       if (($test = Dir::isReadable($dir)) !== true) {
-         throw new InvalidArgumentException(
-            "invalid value provided for 'dir'; $test"
-         );
+	 throw new InvalidArgumentException(
+	    "invalid value provided for 'dir'; $test"
+	 );
       }
 
       $instance = self::getInstance();
       $dirs = array_flip($instance->dirs);
       if (!array_key_exists($dir, $dirs)) {
-         if ($prepend === true) {
-            array_unshift($instance->dirs, $dir);
-         }
-         else {
-            $instance->dirs[] = $dir;
-         }
+	 if ($prepend === true) {
+	    array_unshift($instance->dirs, $dir);
+	 }
+	 else {
+	    $instance->dirs[] = $dir;
+	 }
       }
       $dirs[$dir] = true;
       $instance->dirs = array_keys($dirs);
@@ -101,9 +101,9 @@ class Command extends \sndsgd\util\Singleton
    public function __construct()
    {
       if ($dirs = getenv('PATH')) {
-         $dirs = explode(':', $dirs);
-         $dirs = array_flip($dirs);
-         $this->dirs = array_keys($dirs);
+	 $dirs = explode(':', $dirs);
+	 $dirs = array_flip($dirs);
+	 $this->dirs = array_keys($dirs);
       }
    }
 
@@ -117,11 +117,10 @@ class Command extends \sndsgd\util\Singleton
    protected function addPath($name, $path)
    {
       if (($test = Path::test($path, File::EXECUTABLE)) !== true) {
-         throw new InvalidArgumentException(
-            "invalid value provided for 'path'; $test"
-         );
+	 throw new InvalidArgumentException(
+	    "invalid value provided for 'path'; $test"
+	 );
       }
       $this->paths[$name] = $path;
    }
 }
-

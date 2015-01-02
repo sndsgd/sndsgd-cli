@@ -13,15 +13,20 @@ class CommandTest extends PHPUnit_Framework_TestCase
       vfsStream::newFile('sndsgd-invalid-binary', 0664)->at($root);
       vfsStream::newDirectory('readable-dir', 0775)->at($root);
       vfsStream::newDirectory('non-readable-dir', 0700)
-         ->at($root)
-         ->chgrp(vfsStream::GROUP_ROOT)
-         ->chown(vfsStream::OWNER_ROOT);
+	 ->at($root)
+	 ->chgrp(vfsStream::GROUP_ROOT)
+	 ->chown(vfsStream::OWNER_ROOT);
    }
 
    public function testAddDir()
    {
       Command::addSearchDir(vfsStream::url('root'), true);
       Command::addSearchDir(vfsStream::url('root/readable-dir'));
+   }
+
+   public function testConstructor()
+   {
+      $cmd = new Command;
    }
 
    public function testGetPath()
@@ -64,4 +69,3 @@ class CommandTest extends PHPUnit_Framework_TestCase
       Command::setPath('sndsgd-invalid-binary', $path);
    }
 }
-
