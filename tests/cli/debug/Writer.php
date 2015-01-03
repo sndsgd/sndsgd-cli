@@ -77,7 +77,7 @@ class WriterTest extends PHPUnit_Framework_TestCase
    {
       $msg = 'test message';
       Debug::info(function() use ($msg) {
-	 return $msg;
+         return $msg;
       });
       $this->assertEquals($msg, file_get_contents($this->stream));
    }
@@ -88,7 +88,7 @@ class WriterTest extends PHPUnit_Framework_TestCase
    public function testVerboseException()
    {
       Debug::info(function() {
-	 return new \StdClass;
+         return new \StdClass;
       });
    }
 

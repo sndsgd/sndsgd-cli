@@ -68,9 +68,9 @@ class ArgumentParser
    public function setCollection(Collection $collection)
    {
       foreach ($collection->getFields() as $name => $field) {
-	 if ($field->getOption(self::UNNAMED_ARGUMENT) !== null) {
-	    $this->unnamedArguments[] = $name;
-	 }
+         if ($field->getOption(self::UNNAMED_ARGUMENT) !== null) {
+            $this->unnamedArguments[] = $name;
+         }
       }
       $this->collection = $collection;
    }
@@ -94,11 +94,11 @@ class ArgumentParser
    {
       $tasks = array_flip($tasks);
       for ($i=0, $len=count($this->args); $i<$len; $i++) {
-	 $arg = $this->args[$i];
-	 if (array_key_exists($arg, $tasks)) {
-	    array_splice($this->args, $i, 1);
-	    return $arg;
-	 }
+         $arg = $this->args[$i];
+         if (array_key_exists($arg, $tasks)) {
+            array_splice($this->args, $i, 1);
+            return $arg;
+         }
       }
       return null;
    }
@@ -116,26 +116,26 @@ class ArgumentParser
       $ret = 0;
       $len = count($this->args);
       for ($i=0; $i<$len; $i++) {
-	 $current = $this->args[$i];
-	 $next = ($i === $len - 1) ? null : $this->args[$i+1];
+         $current = $this->args[$i];
+         $next = ($i === $len - 1) ? null : $this->args[$i+1];
 
-	 if ($current{0} === '-') {
-	    $fieldName = substr($current, 1);
-	    $value = true;
-	    if ($fieldName{0} === '-') {
-	       $fieldName = substr($fieldName, 1);
-	       $pos = strpos($fieldName, '=');
-	       if ($pos !== false) {
-		  $value = substr($fieldName, $pos+1);
-		  $fieldName = substr($fieldName, 0, $pos);
-	       }
-	    }
+         if ($current{0} === '-') {
+            $fieldName = substr($current, 1);
+            $value = true;
+            if ($fieldName{0} === '-') {
+               $fieldName = substr($fieldName, 1);
+               $pos = strpos($fieldName, '=');
+               if ($pos !== false) {
+	          $value = substr($fieldName, $pos+1);
+	          $fieldName = substr($fieldName, 0, $pos);
+               }
+            }
 
-	    $i += $this->processNamedArgument($fieldName, $value, $next);
-	 }
-	 else {
-	    $this->processUnnamedArgument($current);
-	 }
+            $i += $this->processNamedArgument($fieldName, $value, $next);
+         }
+         else {
+            $this->processUnnamedArgument($current);
+         }
       }
    }
 
@@ -153,33 +153,33 @@ class ArgumentParser
 
       # no field was found
       if ($field === null) {
-	 $cmd = Cli::getScriptName(true);
-	 throw new Exception(
-	    "unknown option '$argName'\n".
-	    "use '@[bold]$cmd --help@[reset]' for help\n\n"
-	 );
+         $cmd = Cli::getScriptName(true);
+         throw new Exception(
+            "unknown option '$argName'\n".
+            "use '@[bold]$cmd --help@[reset]' for help\n\n"
+         );
       }
       else {
-	 $eventData = [
-	    'collection' => $this->collection,
-	    'field' => $field,
-	    'name' => $argName
-	 ];
+         $eventData = [
+            'collection' => $this->collection,
+            'field' => $field,
+            'name' => $argName
+         ];
 
-	 if (
-	    $field instanceof BooleanField ||
-	    //$value !== true ||
-	    $next === null ||
-	    $next{0} === '-'
-	 ) {
-	    $field->addValue($value);
-	    $field->fire('parse', $eventData);
-	 }
-	 else {
-	    $field->addValue($next);
-	    $field->fire('parse', $eventData);
-	    return 1;
-	 }
+         if (
+            $field instanceof BooleanField ||
+            //$value !== true ||
+            $next === null ||
+            $next{0} === '-'
+         ) {
+            $field->addValue($value);
+            $field->fire('parse', $eventData);
+         }
+         else {
+            $field->addValue($next);
+            $field->fire('parse', $eventData);
+            return 1;
+         }
       }
 
       return 0;
@@ -193,10 +193,10 @@ class ArgumentParser
    private function processUnnamedArgument($value)
    {
       if (count($this->unnamedArguments) === 0) {
-	 if (strlen($value) > 100) {
-	    $value = substr($value, 0, 96).'...';
-	 }
-	 Debug::error("unexpected unnamed argument '$value'\n");
+         if (strlen($value) > 100) {
+            $value = substr($value, 0, 96).'...';
+         }
+         Debug::error("unexpected unnamed argument '$value'\n");
       }
       $fieldName = array_shift($this->unnamedArguments);
       var_dump($fieldName);

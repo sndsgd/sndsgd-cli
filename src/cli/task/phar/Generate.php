@@ -30,21 +30,21 @@ class Generate extends Task
       $err = null;
       $path = Path::normalize("$v/composer.json");
       if (($test = File::isReadable($path)) !== true) {
-	 $err = "failed to read '$path'; $test";
+         $err = "failed to read '$path'; $test";
       }
       else if (($json = file_get_contents($path)) === null) {
-	 $err = "failed to read '$path'";
+         $err = "failed to read '$path'";
       }
       else if (($data = json_decode($json, true)) === null) {
-	 $err = "failed to decode '$path'; ".Json::getError();
+         $err = "failed to decode '$path'; ".Json::getError();
       }
       else {
-	 $c->addData('composer', $data);
+         $c->addData('composer', $data);
       }
 
       return ($err === null)
-	 ? $v
-	 : new ValidationError($err, $v, $n, $i);
+         ? $v
+         : new ValidationError($err, $v, $n, $i);
    }
 
    /**
@@ -74,61 +74,61 @@ class Generate extends Task
       $task = $this;
       $fc = $this->getFieldCollection();
       $fc->addFields(
-	 Field::boolean('executable')
-	    ->addAliases('x')
-	    ->setDescription('Make the resulting file executable'),
-	 Field::string('working-dir')
-	    ->setExportName('dir')
-	    ->addAliases('d')
-	    ->setDefault('.')
-	    ->setDescription('The absolute directory of the project')
-	    ->addRules(
-	       new Required(),
-	       new MaxValueCount(1),
-	       new PathTest(Dir::READABLE),
-	       new Closure(__CLASS__.'::validateComposer')
-	    ),
-	 Field::string('class')
-	    ->addAliases('c')
-	    ->setDescription('The namespaced name of the task class to pharify')
-	    ->addRules(
-	       new Required(),
-	       new MaxValueCount(1),
-	       new Closure(function($v, $d, $n, $i, $c) {
-		  $class = Classname::toString($v);
-		  return (Task::validateClassname($class))
-		     ? $class
-		     : new ValidationError("must be a subclass of sndsgd\\Task");
-	       })
-	    ),
-	 Field::string('output-directory')
-	    ->addAliases('o')
-	    ->setExportName('outdir')
-	    ->setDescription('The directory to create the phar in')
-	    ->setDefault('.')
-	    ->addRules(
-	       new MaxValueCount(1),
-	       new PathTest(Dir::WRITABLE)
-	    ),
-	 Field::string('name')
-	    ->addAliases('n')
-	    ->setExportName('name')
-	    ->setDescription('The filename of the phar')
-	    ->addRules(
-	       new MaxValueCount(1),
-	       (new Regex('/^[a-z0-9-_]+$/i'))
-		  ->setMessage('contains wonky characters')
-	    )
+         Field::boolean('executable')
+            ->addAliases('x')
+            ->setDescription('Make the resulting file executable'),
+         Field::string('working-dir')
+            ->setExportName('dir')
+            ->addAliases('d')
+            ->setDefault('.')
+            ->setDescription('The absolute directory of the project')
+            ->addRules(
+               new Required(),
+               new MaxValueCount(1),
+               new PathTest(Dir::READABLE),
+               new Closure(__CLASS__.'::validateComposer')
+            ),
+         Field::string('class')
+            ->addAliases('c')
+            ->setDescription('The namespaced name of the task class to pharify')
+            ->addRules(
+               new Required(),
+               new MaxValueCount(1),
+               new Closure(function($v, $d, $n, $i, $c) {
+                  $class = Classname::toString($v);
+                  return (Task::validateClassname($class))
+                     ? $class
+                     : new ValidationError("must be a subclass of sndsgd\\Task");
+               })
+            ),
+         Field::string('output-directory')
+            ->addAliases('o')
+            ->setExportName('outdir')
+            ->setDescription('The directory to create the phar in')
+            ->setDefault('.')
+            ->addRules(
+               new MaxValueCount(1),
+               new PathTest(Dir::WRITABLE)
+            ),
+         Field::string('name')
+            ->addAliases('n')
+            ->setExportName('name')
+            ->setDescription('The filename of the phar')
+            ->addRules(
+               new MaxValueCount(1),
+               (new Regex('/^[a-z0-9-_]+$/i'))
+                  ->setMessage('contains wonky characters')
+            )
       );
 
 
       $fc->on('afterValidate', function(Event $ev) use ($fc) {
-	 if (($name = $fc->exportFieldValue('name')) === null) {
-	    $classname = $fc->exportFieldValue('class');
-	    $class = Classname::split($classname);
-	    $class = array_pop($class);
-	    $fc->getField('name')->addValue(strtolower($class));
-	 }
+         if (($name = $fc->exportFieldValue('name')) === null) {
+            $classname = $fc->exportFieldValue('class');
+            $class = Classname::split($classname);
+            $class = array_pop($class);
+            $fc->getField('name')->addValue(strtolower($class));
+         }
       });
    }
 
@@ -140,13 +140,13 @@ class Generate extends Task
    protected function validatePharWrite()
    {
       if (Str::toBoolean(ini_get('phar.readonly')) === true) {
-	 $iniPath = php_ini_loaded_file();
-	 Debug::error(
-	    "phar write support is disabled\n".
-	    "writing phar archives is currently disabled in php.ini\n".
-	    "to continue, you must update the value for 'phar.readonly' ".
-	    "in {$iniPath} to 'Off'\n"
-	 );
+         $iniPath = php_ini_loaded_file();
+         Debug::error(
+            "phar write support is disabled\n".
+            "writing phar archives is currently disabled in php.ini\n".
+            "to continue, you must update the value for 'phar.readonly' ".
+            "in {$iniPath} to 'Off'\n"
+         );
       }
    }
 
@@ -168,11 +168,11 @@ class Generate extends Task
       $this->createSlimClone($opts);
       $this->createPhar($opts);
       if ($opts['executable']) {
-	 $this->makeExecutable($opts);
+         $this->makeExecutable($opts);
       }
       $size = File::formatSize(filesize($this->path));
       Debug::info("resulting filesize: $size\n", 1);
-      return $this->path;
+      return $this->path.PHP_EOL;
    }
 
    /**
@@ -191,7 +191,7 @@ class Generate extends Task
       Debug::info("copying composer.json... ");
       $data = $this->fieldCollection->getData('composer');
       if (array_key_exists('require-dev', $data)) {
-	 unset($data['require-dev']);
+         unset($data['require-dev']);
       }
 
       $path = $this->tmpdir.'/composer.json';
@@ -204,12 +204,12 @@ class Generate extends Task
    {
       Debug::info("copying autoload source directories... ");
       foreach ($autoload as $method => $paths) {
-	 foreach ($paths as $ns => $dir) {
-	    $dir = rtrim($dir, '/');
-	    $source = $opts['dir'].DIRECTORY_SEPARATOR.$dir;
-	    $dest = $this->tmpdir.DIRECTORY_SEPARATOR.$dir;
-	    exec('cp -r '.escapeshellarg($source).' '.escapeshellarg($dest));
-	 }
+         foreach ($paths as $ns => $dir) {
+            $dir = rtrim($dir, '/');
+            $source = $opts['dir'].DIRECTORY_SEPARATOR.$dir;
+            $dest = $this->tmpdir.DIRECTORY_SEPARATOR.$dir;
+            exec('cp -r '.escapeshellarg($source).' '.escapeshellarg($dest));
+         }
       }
       Debug::info("done\n");
    }
@@ -218,24 +218,24 @@ class Generate extends Task
    {
       Debug::info("fetching dependencies (this may take a while)... ");
       $proc = new Process([
-	 'composer',
-	 '--working-dir='.escapeshellarg($this->tmpdir),
-	 'update',
-	 '--no-dev',
-	 '--prefer-dist',
-	 '--optimize-autoloader',
+         'composer',
+         '--working-dir='.escapeshellarg($this->tmpdir),
+         'update',
+         '--no-dev',
+         '--prefer-dist',
+         '--optimize-autoloader',
       ]);
       $exitcode = $proc->exec();
       if ($exitcode !== 0) {
-	 Debug::info("\n");
-	 Debug::error("failed to fetch dependencies\n");
+         Debug::info("\n");
+         Debug::error("failed to fetch dependencies\n");
       }
 
       Debug::info("done\n");
       $autoloader = "{$this->tmpdir}/vendor/composer/autoload_classmap.php";
       $classes = require $autoloader;
       if (!array_key_exists($opts['class'], $classes)) {
-	 Debug::error("the specified class could not be found\n");
+         Debug::error("the specified class could not be found\n");
       }
    }
 
@@ -244,7 +244,7 @@ class Generate extends Task
       Debug::info("creating phar... ");
       $test = File::prepare($this->path);
       if ($test !== true) {
-	 Debug::error("failed to create PHAR; $test\n");
+         Debug::error("failed to create PHAR; $test\n");
       }
 
       $pharName = basename($this->path);
@@ -258,22 +258,22 @@ class Generate extends Task
    private function getStub($pharName, $class)
    {
       return implode(PHP_EOL, [
-	 '#!/usr/bin/env php',
-	 '<?php',
-	 '',
-	 "Phar::mapPhar('{$pharName}');",
-	 '',
-	 "require 'phar://{$pharName}/vendor/autoload.php';",
-	 '',
-	 '$task = new '.$class.';',
-	 '$runner = new sndsgd\\cli\\task\\Runner;',
-	 '$result = $runner->run($task, $argv);',
-	 'if (is_string($result) || is_int($result) || is_float($result)) {',
-	 '   echo $result;',
-	 '}',
-	 '',
-	 '__HALT_COMPILER();',
-	 ''
+         '#!/usr/bin/env php',
+         '<?php',
+         '',
+         "Phar::mapPhar('{$pharName}');",
+         '',
+         "require 'phar://{$pharName}/vendor/autoload.php';",
+         '',
+         '$task = new '.$class.';',
+         '$runner = new sndsgd\\cli\\task\\Runner;',
+         '$result = $runner->run($task, $argv);',
+         'if (is_string($result) || is_int($result) || is_float($result)) {',
+         '   echo $result;',
+         '}',
+         '',
+         '__HALT_COMPILER();',
+         ''
       ]);
    }
 
@@ -281,23 +281,23 @@ class Generate extends Task
    {
       Debug::info("updating permissions... ", 2);
       if (!@chmod($this->path, 0775)) {
-	 Debug::info("\n", 2);
-	 Debug::error("failed to change permissions for '{$opts['file']}'\n");
+         Debug::info("\n", 2);
+         Debug::error("failed to change permissions for '{$opts['file']}'\n");
       }
       Debug::info("done\n", 2);
 
       $filename = basename($this->path);
       list($name, $ext) = File::splitName($filename);
       if ($ext !== null) {
-	 Debug::info("renaming from {$filename} to {$name}... ");
-	 $source = $this->path;
-	 $dest = dirname($this->path).DIRECTORY_SEPARATOR.$name;
-	 if (!@rename($source, $dest)) {
-	    Debug::info("\n", 2);
-	    Debug::error("failed to rename '{$this->path}'\n");
-	 }
-	 $this->path = $dest;
-	 Debug::info("done\n", 2);
+         Debug::info("renaming from {$filename} to {$name}... ");
+         $source = $this->path;
+         $dest = dirname($this->path).DIRECTORY_SEPARATOR.$name;
+         if (!@rename($source, $dest)) {
+            Debug::info("\n", 2);
+            Debug::error("failed to rename '{$this->path}'\n");
+         }
+         $this->path = $dest;
+         Debug::info("done\n", 2);
       }
    }
 }

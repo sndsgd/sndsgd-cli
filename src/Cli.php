@@ -29,13 +29,13 @@ class Cli
    public static function getScriptPath()
    {
       if ($_SERVER['SCRIPT_FILENAME']{0} === '/') {
-	 return $_SERVER['SCRIPT_FILENAME'];
+         return $_SERVER['SCRIPT_FILENAME'];
       }
       else if (strpos($_SERVER['SCRIPT_NAME'], $_SERVER['PWD']) === 0) {
-	 return $_SERVER['SCRIPT_NAME'];
+         return $_SERVER['SCRIPT_NAME'];
       }
       else {
-	 return Path::normalize($_SERVER['PWD'].'/'.$_SERVER['SCRIPT_NAME']);
+         return Path::normalize($_SERVER['PWD'].'/'.$_SERVER['SCRIPT_NAME']);
       }
    }
 

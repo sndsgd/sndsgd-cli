@@ -101,7 +101,7 @@ class Writer extends \sndsgd\debug\Writer
    public function write($msg, $code, $force = false)
    {
       if ($this->shouldWrite($force, $code)) {
-	 file_put_contents($this->stream, $this->formatMessage($msg));
+         file_put_contents($this->stream, $this->formatMessage($msg));
       }
    }
 
@@ -115,22 +115,22 @@ class Writer extends \sndsgd\debug\Writer
    {
       $regex = '/@\\[([a-z-:+ ]+)\\]/';
       if (preg_match_all($regex, $content, $matches, PREG_SET_ORDER)) {
-	 foreach ($matches as $captures) {
-	    $match = $captures[0];
-	    $keys = explode('+', $captures[1]);
-	    $codes = [];
-	    foreach ($keys as $key) {
-	       $key = trim($key);
-	       if (array_key_exists($key, $this->styleCodes)) {
-		  $codes[] = $this->styleCodes[$key];
-	       }
-	    }
+         foreach ($matches as $captures) {
+            $match = $captures[0];
+            $keys = explode('+', $captures[1]);
+            $codes = [];
+            foreach ($keys as $key) {
+               $key = trim($key);
+               if (array_key_exists($key, $this->styleCodes)) {
+	          $codes[] = $this->styleCodes[$key];
+               }
+            }
 
-	    if ($codes) {
-	       $replace = "\033[".implode(';', $codes).'m';
-	       $content = str_replace($match, $replace, $content);
-	    }
-	 }
+            if ($codes) {
+               $replace = "\033[".implode(';', $codes).'m';
+               $content = str_replace($match, $replace, $content);
+            }
+         }
       }
       return $content;
    }

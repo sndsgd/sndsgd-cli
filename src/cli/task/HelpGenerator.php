@@ -43,9 +43,9 @@ class HelpGenerator
    public function generate()
    {
       return implode("\n", [
-	 $this->createDescription(),
-	 $this->createUsage(true)."\n",
-	 $this->createOptions()
+         $this->createDescription(),
+         $this->createUsage(true)."\n",
+         $this->createOptions()
       ])."\n";
    }
 
@@ -67,7 +67,7 @@ class HelpGenerator
    {
       $ret = "@[reverse+bold] ".strtoupper($txt)." @[reset]";
       if ($right) {
-	 $ret .= $right;
+         $ret .= $right;
       }
       return $ret."\n";
    }
@@ -84,28 +84,28 @@ class HelpGenerator
       $opts = [];
       $fields = $this->fields;
       foreach ($fields as $field) {
-	 $opts[] = $this->createFieldUsage($field);
+         $opts[] = $this->createFieldUsage($field);
       }
 
       $cmd = Cli::getScriptName(true);
       $maxWidth = min(Cli::getWidth(), 78);
       if ($header === true) {
-	 $ret .= $this->createHeader('usage');
-	 $tmp = " $cmd";
+         $ret .= $this->createHeader('usage');
+         $tmp = " $cmd";
       }
       else {
-	 $tmp = "usage: $cmd";
+         $tmp = "usage: $cmd";
       }
 
       $indent = strlen($tmp);
       foreach ($opts as $opt) {
-	 if (strlen($tmp) + strlen($opt) >= $maxWidth) {
-	    $ret .= "$tmp\n";
-	    $tmp = str_pad('', $indent, ' ')." $opt";
-	 }
-	 else {
-	    $tmp .= " $opt";
-	 }
+         if (strlen($tmp) + strlen($opt) >= $maxWidth) {
+            $ret .= "$tmp\n";
+            $tmp = str_pad('', $indent, ' ')." $opt";
+         }
+         else {
+            $tmp .= " $opt";
+         }
       }
       $ret .= $tmp;
       return $ret;
@@ -124,25 +124,25 @@ class HelpGenerator
       $isBoolean = $field instanceof \sndsgd\field\BooleanField;
       $exportName = $field->getExportName();
       array_walk($opts, function(&$v) use ($isBoolean, $exportName) {
-	 $isName = substr($v, 0, 2) === '--';
-	 if ($isName) {
-	    if (!$isBoolean) {
-	       $v .= '=';
-	    }
-	 }
-	 else if (!$isName) {
-	    $v = "-$v ";
-	 }
-	 if (!$isBoolean) {
-	    $v .= "<$exportName>";
-	 }
-	 $v = trim($v);
+         $isName = substr($v, 0, 2) === '--';
+         if ($isName) {
+            if (!$isBoolean) {
+               $v .= '=';
+            }
+         }
+         else if (!$isName) {
+            $v = "-$v ";
+         }
+         if (!$isBoolean) {
+            $v .= "<$exportName>";
+         }
+         $v = trim($v);
       });
 
       $opts = implode('|', $opts);
       $isRequired = $field->hasRule('sndsgd\\field\\rule\\Required');
       if (!$isRequired) {
-	 $opts = "[$opts]";
+         $opts = "[$opts]";
       }
       return $opts;
    }
@@ -157,14 +157,14 @@ class HelpGenerator
       $tmp = '';
       $fields = $this->fields;
       if (count($fields)) {
-	 $tmp = $this->createHeader("options");
-	 ksort($fields);
-	 foreach ($fields as $field) {
-	    $flags = array_merge(['-'.$field->getName()], $field->getAliases());
-	    array_walk($flags, function(&$v) { $v = "@[bold]-$v@[reset]"; });
-	    $tmp .= ' '.implode(', ', $flags);
-	    $tmp .= "\n   ".$field->getDescription()."@[reset]\n";
-	 }
+         $tmp = $this->createHeader("options");
+         ksort($fields);
+         foreach ($fields as $field) {
+            $flags = array_merge(['-'.$field->getName()], $field->getAliases());
+            array_walk($flags, function(&$v) { $v = "@[bold]-$v@[reset]"; });
+            $tmp .= ' '.implode(', ', $flags);
+            $tmp .= "\n   ".$field->getDescription()."@[reset]\n";
+         }
       }
       return $tmp;
    }

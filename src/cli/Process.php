@@ -83,7 +83,7 @@ class Process
    public function __construct($command, $cwd = null)
    {
       if (is_array($command)) {
-	 $command = implode(' ', $command);
+         $command = implode(' ', $command);
       }
       $this->command = $command;
       $this->cwd = $cwd;
@@ -109,9 +109,9 @@ class Process
    public function setStdinFile($path)
    {
       if (($test = File::isReadable($path)) !== true) {
-	 throw new InvalidArgumentException(
-	    "invalid value provided for 'path'; $test"
-	 );
+         throw new InvalidArgumentException(
+            "invalid value provided for 'path'; $test"
+         );
       }
       $this->spec[self::STDIN] = ['file', $path, 'r'];
       $this->stdin = '';
@@ -127,9 +127,9 @@ class Process
    private function setOutputFile($stream, $path, $append)
    {
       if (($test = File::isWritable($path)) !== true) {
-	 throw new InvalidArgumentException(
-	    "invalid value provided for 'path'; $test"
-	 );
+         throw new InvalidArgumentException(
+            "invalid value provided for 'path'; $test"
+         );
       }
 
       $this->spec[$stream] = ['file', $path, $append === true ? 'a' : 'w'];
@@ -197,27 +197,27 @@ class Process
    public function exec()
    {
       $process = proc_open(
-	 $this->command,
-	 $this->spec,
-	 $pipes,
-	 $this->cwd,
-	 $this->env
+         $this->command,
+         $this->spec,
+         $pipes,
+         $this->cwd,
+         $this->env
       );
 
       if (is_resource($process)) {
-	 if ($this->spec[self::STDIN][0] === 'pipe') {
-	    fwrite($pipes[0], $this->stdin);
-	    fclose($pipes[0]);
-	 }
-	 if ($this->spec[self::STDOUT][0] === 'pipe') {
-	    $this->stdout = stream_get_contents($pipes[1]);
-	    fclose($pipes[1]);
-	 }
-	 if ($this->spec[self::STDERR][0] === 'pipe') {
-	    $this->stderr = stream_get_contents($pipes[2]);
-	    fclose($pipes[2]);
-	 }
-	 $this->exitcode = proc_close($process);
+         if ($this->spec[self::STDIN][0] === 'pipe') {
+            fwrite($pipes[0], $this->stdin);
+            fclose($pipes[0]);
+         }
+         if ($this->spec[self::STDOUT][0] === 'pipe') {
+            $this->stdout = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+         }
+         if ($this->spec[self::STDERR][0] === 'pipe') {
+            $this->stderr = stream_get_contents($pipes[2]);
+            fclose($pipes[2]);
+         }
+         $this->exitcode = proc_close($process);
       }
       return $this->exitcode;
    }
@@ -230,11 +230,11 @@ class Process
    public function export()
    {
       return [
-	 'command' => $this->command,
-	 'cwd' => $this->cwd,
-	 'exit code' => $this->exitcode,
-	 'stdout' => $this->stdout,
-	 'stderr' => $this->stderr
+         'command' => $this->command,
+         'cwd' => $this->cwd,
+         'exit code' => $this->exitcode,
+         'stdout' => $this->stdout,
+         'stderr' => $this->stderr
       ];
    }
 }

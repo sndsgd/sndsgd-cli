@@ -15,9 +15,9 @@ class ExampleTask extends \sndsgd\Task
       parent::__construct();
       $fc = $this->getFieldCollection();
       $fc->addFields(
-	 Field::float('value')
-	    ->setExportHandler(Field::EXPORT_ARRAY)
-	    ->addRules(new Required)
+         Field::float('value')
+            ->setExportHandler(Field::EXPORT_ARRAY)
+            ->addRules(new Required)
       );
    }
 
@@ -30,7 +30,7 @@ class ExampleTask extends \sndsgd\Task
    {
       $ret = 0;
       foreach ($options['value'] as $value) {
-	 $ret += $value;
+         $ret += $value;
       }
       return $ret;
    }
