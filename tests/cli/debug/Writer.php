@@ -101,17 +101,6 @@ class WriterTest extends PHPUnit_Framework_TestCase
    }
 
    /**
-    * @covers ::warn
-    */
-   public function testWarn()
-   {
-      $msg = 'test message';
-      Debug::warn($msg, null);
-      $contents = file_get_contents($this->stream);
-      $this->assertTrue(Str::endsWith($contents, $msg));
-   }
-
-   /**
     * @covers ::error
     */
    public function testError()

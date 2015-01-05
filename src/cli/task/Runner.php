@@ -44,15 +44,6 @@ class Runner extends \sndsgd\task\Runner
                Debug::info($help->generate());
                exit(0);
             }),
-         // Field::boolean('version')
-         //    ->addAliases('V')
-         //    ->setDescription('print the current version and exit')
-         //    ->setExportHandler(Field::EXPORT_SKIP)
-         //    ->on('parse', function(Event $ev) {
-         //       $app = $ev->getData('collection');
-         //       Console::log($app->getVersionInfo());
-         //       exit(0);
-         //    }),
          Field::boolean('verbose')
             ->addAliases('v', 'vv', 'vvv')
             ->setDescription('set the verbosity of output')
@@ -66,6 +57,11 @@ class Runner extends \sndsgd\task\Runner
                ];
 
                Debug::getWriter()->setVerboseLevel($values[$ev->getData('name')]);
+            }),
+         Field::boolean('no-ansi')
+            ->setDescription('disable colors debug messages')
+            ->on('parse', function(Event $ev) {
+               Debug::getWriter()->disableColors();
             }),
          Field::boolean('stats')
             ->setDescription('show execution time and memory usage on quit')

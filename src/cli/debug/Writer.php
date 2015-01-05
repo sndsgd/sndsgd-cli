@@ -127,7 +127,9 @@ class Writer extends \sndsgd\debug\Writer
             }
 
             if ($codes) {
-               $replace = "\033[".implode(';', $codes).'m';
+               $replace = ($this->colors)
+                  ? "\033[".implode(';', $codes).'m'
+                  : '';
                $content = str_replace($match, $replace, $content);
             }
          }
