@@ -7,6 +7,7 @@ use \sndsgd\cli\Process;
 use \sndsgd\Debug;
 use \sndsgd\event\Event;
 use \sndsgd\Field;
+use \sndsgd\field\rule\Classname as ClassnameRule;
 use \sndsgd\field\rule\Closure;
 use \sndsgd\field\rule\Required;
 use \sndsgd\field\rule\MaxValueCount;
@@ -94,12 +95,7 @@ class Generate extends Task
             ->addRules(
                new Required(),
                new MaxValueCount(1),
-               new Closure(function($v, $d, $n, $i, $c) {
-                  $class = Classname::toString($v);
-                  return (Task::validateClassname($class))
-                     ? $class
-                     : new ValidationError("must be a subclass of sndsgd\\Task");
-               })
+               new ClassnameRule()
             ),
          Field::string('output-directory')
             ->addAliases('o')
