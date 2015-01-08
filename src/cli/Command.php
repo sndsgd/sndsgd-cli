@@ -29,8 +29,9 @@ class Command extends \sndsgd\util\Singleton
     * Get the path to a binary given its name
     *
     * @param string $name The name of the binary to retrieve the path to
-    * @return string The absolute path to the binary
-    * @throws Exception If the binary cannot be found
+    * @return string|null
+    * @return string The absolute path to the command
+    * @return null The command was not found
     */
    public static function getPath($name)
    {
@@ -38,16 +39,16 @@ class Command extends \sndsgd\util\Singleton
       if (array_key_exists($name, $instance->paths)) {
          return $instance->paths[$name];
       }
-      else {
-         foreach ($instance->dirs as $dir) {
-            $path = $dir.DIRECTORY_SEPARATOR.$name;
-            if (file_exists($path) && is_executable($path)) {
-               $instance->addPath($name, $path);
-               return $path;
-            }
+      
+      foreach ($instance->dirs as $dir) {
+         $path = $dir.DIRECTORY_SEPARATOR.$name;
+         if (file_exists($path) && is_executable($path)) {
+            $instance->addPath($name, $path);
+            return $path;
          }
-         throw new Exception("failed to locate binary '$name'");
       }
+
+      return null;
    }
 
    /**

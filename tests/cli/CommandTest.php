@@ -37,12 +37,9 @@ class CommandTest extends PHPUnit_Framework_TestCase
       $this->assertEquals($expect, Command::getPath('sndsgd-valid-binary'));
    }
 
-   /**
-    * @expectedException Exception
-    */
-   public function testGetPathException()
+   public function testGetPathNotFound()
    {
-      Command::getPath('this-binary-most-not-exist');
+      $this->assertNull(Command::getPath('this-binary-most-not-exist'));
    }
 
    /**
