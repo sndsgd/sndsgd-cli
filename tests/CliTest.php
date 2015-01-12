@@ -1,5 +1,7 @@
 <?php
 
+namespace sndsgd;
+
 use \org\bovigo\vfs\vfsStream;
 use \sndsgd\Cli;
 
@@ -7,7 +9,7 @@ use \sndsgd\Cli;
 /**
  * @coversDefaultClass \sndsgd\Cli
  */
-class CliTest extends PHPUnit_Framework_TestCase
+class CliTest extends \PHPUnit_Framework_TestCase
 {
    /**
     * @covers ::getScriptName
@@ -25,6 +27,18 @@ class CliTest extends PHPUnit_Framework_TestCase
    {
       $path = Cli::getScriptPath();
       $this->assertTrue(file_exists($path));
+   }
+
+   /**
+    * @covers ::fork
+    */
+   public function testFork()
+   {
+      $path = Temp::file('test-fork.txt');
+      Cli::fork('cat '.escapeshellarg(__FILE__), $path);
+      usleep(100000);
+      $expect = file_get_contents(__FILE__);
+      $this->assertEquals($expect, file_get_contents($path));
    }
 
    /**

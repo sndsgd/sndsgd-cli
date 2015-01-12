@@ -4,6 +4,7 @@ namespace sndsgd\cli\task;
 
 use \sndsgd\Cli;
 use \sndsgd\Field;
+use \sndsgd\field\BooleanField;
 use \sndsgd\Task;
 
 
@@ -19,7 +20,7 @@ class HelpGenerator
    /**
     * The tasks fields are copied here in the constructor
     *
-    * @var array.<sndsgd\field\Field>
+    * @var array.<sndsgd\Field>
     */
    protected $fields;
 
@@ -31,8 +32,7 @@ class HelpGenerator
    public function __construct(Task $task)
    {
       $this->task = $task;
-      $fc = $task->getFieldCollection();
-      $this->fields = $fc->getFields();
+      $this->fields = $task->getFields();
    }
 
    /**
@@ -53,7 +53,9 @@ class HelpGenerator
    {
       $cmd = Cli::getScriptName();
       $description = $this->task->getDescription();
-      return $this->createHeader('name', " @[bold]$cmd@[reset]")." $description\n";
+      $version = 'version '.$this->task->getVersion();
+      $header = $this->createHeader('name', " @[bold]{$cmd}@[reset] $version");
+      return "$header $description\n";
    }
 
    /**
@@ -81,13 +83,22 @@ class HelpGenerator
    public function createUsage($header = false)
    {
       $ret = '';
-      $opts = [];
-      $fields = $this->fields;
-      foreach ($fields as $field) {
-         $opts[] = $this->createFieldUsage($field);
+      $bools = [];
+      $others = [];
+      foreach ($this->fields as $field) {
+         $name = $field->getName();
+         $usage = $this->createFieldUsage($field);
+         if ($field instanceof BooleanField) {
+            $bools[$name] = $usage;
+         }
+         else {
+            $others[$name] = $usage;
+         }
       }
 
-      $cmd = Cli::getScriptName(true);
+      $opts = array_merge(array_values($bools), array_values($others));
+
+      $cmd = Cli::getScriptName();
       $maxWidth = min(Cli::getWidth(), 78);
       if ($header === true) {
          $ret .= $this->createHeader('usage');
@@ -114,16 +125,16 @@ class HelpGenerator
    /**
     * Create usage instructions for a field
     *
-    * @param sndsgd\field\Field $field
+    * @param sndsgd\Field $field
     * @return string
     */
    private function createFieldUsage(Field $field)
    {
       $name = $field->getName();
       $opts = array_merge(["--$name"], $field->getAliases());
-      $isBoolean = $field instanceof \sndsgd\field\BooleanField;
-      $exportName = $field->getExportName();
-      array_walk($opts, function(&$v) use ($isBoolean, $exportName) {
+      $isBoolean = $field instanceof BooleanField;
+      $hint = $field->getData('short-hint', $name);
+      array_walk($opts, function(&$v) use ($isBoolean, $hint) {
          $isName = substr($v, 0, 2) === '--';
          if ($isName) {
             if (!$isBoolean) {
@@ -134,7 +145,7 @@ class HelpGenerator
             $v = "-$v ";
          }
          if (!$isBoolean) {
-            $v .= "<$exportName>";
+            $v .= "<$hint>";
          }
          $v = trim($v);
       });
@@ -160,9 +171,17 @@ class HelpGenerator
          $tmp = $this->createHeader("options");
          ksort($fields);
          foreach ($fields as $field) {
-            $flags = array_merge(['-'.$field->getName()], $field->getAliases());
-            array_walk($flags, function(&$v) { $v = "@[bold]-$v@[reset]"; });
-            $tmp .= ' '.implode(', ', $flags);
+            $name = $field->getName();
+            $flags = array_merge(["-$name"], $field->getAliases());
+            array_walk($flags, function(&$v) { $v = "@[bold]-{$v}@[reset]"; });
+            $tmp .= ' '.array_shift($flags).' ';
+            if (count($flags)) {
+               $tmp .= '('.implode('|', $flags).')';
+            }
+            if (($field instanceof BooleanField) == false) {
+               $hint = $field->getData('short-hint', $name);
+               $tmp .= " @[dim]<{$hint}>@[reset]";
+            }
             $tmp .= "\n   ".$field->getDescription()."@[reset]\n";
          }
       }

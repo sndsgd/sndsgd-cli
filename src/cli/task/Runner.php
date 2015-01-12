@@ -3,156 +3,201 @@
 namespace sndsgd\cli\task;
 
 use \Exception;
+use \InvalidArgumentException;
 use \sndsgd\Cli;
 use \sndsgd\cli\ArgumentParser;
-use \sndsgd\cli\debug\Writer;
+use \sndsgd\cli\env\Controller as EnvController;
 use \sndsgd\cli\task\HelpGenerator;
-use \sndsgd\Debug;
-use \sndsgd\event\Event;
+use \sndsgd\Env;
+use \sndsgd\Event;
 use \sndsgd\Field;
+use \sndsgd\field\UnknownFieldException;
 use \sndsgd\Task;
-use \sndsgd\task\Collection;
-use \sndsgd\util\File;
-use \sndsgd\util\Str;
+use \sndsgd\File;
+use \sndsgd\Str;
 
 
 class Runner extends \sndsgd\task\Runner
 {
    /**
-    * An argument parser
-    *
-    * @var sndsgd\cli\ArgumentParser
+    * Generate and show the help page for the current task and kill the script
+    * 
+    * @param Event $ev An event fired when the field was parsed
+    * @return void
     */
-   protected $parser;
+   public static function showHelp(Event $ev)
+   {
+      $task = $ev->getData('task');
+      $help = new HelpGenerator($task);
+      $verboseLevel = Env::getVerboseLevel();
+      Env::setVerboseLevel(Env::NORMAL);
+      Env::log($help->generate());
+      Env::setVerboseLevel($verboseLevel);
+      Env::terminate(0);
+   }
 
    /**
-    * Update the task with standard cli options
-    *
-    * @param sndsgd\task\Single $task The task to update
-    * @return sndsgd\task\Single
+    * Show version info for the current task and kill the script
+    * 
+    * @param Event $ev An event fired when the field was parsed
+    * @return void
     */
-   protected function setTask(Task $task)
+   public static function showVersionInformation(Event $ev)
    {
-      $fc = $task->getFieldCollection();
-      $fc->addFields(
-         Field::boolean('help')
-            ->addAliases('h')
+      $task = $ev->getData('task');
+      $script = Cli::getScriptName();
+      $version = $task->getVersion();
+      Env::log("$script version $version\n");
+      Env::terminate(0);
+   }
+
+   /**
+    * Set the verbosity for debug messages
+    * 
+    * @param sndsgd\Event $ev An event fired when the field was parsed
+    * @return void
+    */
+   public static function setVerboseLevel(Event $ev) {
+      $flag = $ev->getData('name');
+      $values = [
+        'quiet' => Env::QUIET,
+        'verbose' => Env::V,
+        'v' => Env::V,
+        'vv' => Env::VV,
+        'vvv' => Env::VVV,
+      ];
+      Env::setVerboseLevel($values[$flag]);
+   }
+
+   /**
+    * Disable the debug writer style output
+    * 
+    * @param sndsgd\Event $ev An event fired when the field was parsed
+    * @return void
+    */
+   public static function disableStyledOutput(Event $ev)
+   {
+      Env::getController()->disableStyles();
+   }
+
+   /**
+    * Register a function to show stats on shutdown
+    * 
+    * @param sndsgd\Event $ev An event fired when the field was parsed
+    * @return void
+    */
+   public static function registerStatsShutdownFunction(Event $ev)
+   {
+      # register a func that will register the func to output stats
+      # this ensures that the stats output gets executed last
+      register_shutdown_function(function() {
+         register_shutdown_function(__CLASS__.'::showUsageStats');
+      });
+   }
+
+   /**
+    * Show usage statistics
+    *
+    * @return void
+    */
+   public static function showUsageStats()
+   {
+      $time = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+      $time = number_format($time, 4);
+      $memory = File::formatSize(memory_get_peak_usage(), 2);
+      $message = "processed in $time seconds using $memory of memory\n";
+      $verboseLevel = Env::getVerboseLevel();
+      Env::setVerboseLevel(Env::NORMAL);
+      Env::log($message);
+      Env::setVerboseLevel($verboseLevel);
+   }
+
+   /**
+    * Constructor
+    * 
+    * @param string $classname The name of a task class
+    * @param array.<sndsgd\Field>|null $fields Fields to inject into the task
+    */
+   public function __construct($classname, array $fields = null)
+   {
+      if (($env = Env::getController()) === null) {
+         $env = new EnvController;
+         $env->setStream(EnvController::STDERR);
+         Env::setController($env);
+      }
+
+      $fields = ($fields === null)
+         ? $this->createFields()
+         : array_merge($fields, $this->createRelevantFields());
+
+      parent::__construct($classname, $fields);
+   }
+
+   /**
+    * Create fields that are usefull for ALL tasks run via the command line
+    * 
+    * @return array.<sndsgd\Field>
+    */
+   private function createFields()
+   {
+      return [
+         Field::boolean('help', '?')
             ->setDescription('show this help text')
             ->setExportHandler(Field::EXPORT_SKIP)
-            ->on('parse', function(Event $ev) use ($task) {
-               $help = new HelpGenerator($task);
-               Debug::info($help->generate());
-               exit(0);
-            }),
-         Field::boolean('verbose')
-            ->addAliases('v', 'vv', 'vvv')
+            ->on('parse', __CLASS__.'::showHelp'),
+         Field::boolean('version')
+            ->setDescription('show the current version information')
+            ->setExportHandler(Field::EXPORT_SKIP)
+            ->on('parse', __CLASS__.'::showVersionInformation'),
+         Field::boolean('quiet')
+            ->setDescription('silence all debug messages')
+            ->setExportHandler(Field::EXPORT_SKIP)
+            ->on('parse', __CLASS__.'::setVerboseLevel'),
+         Field::boolean('verbose', 'v', 'vv', 'vvv')
             ->setDescription('set the verbosity of output')
             ->setExportHandler(Field::EXPORT_SKIP)
-            ->on('parse', function(Event $ev) {
-               $values = [
-                 'verbose' => Debug::VERBOSE_1,
-                 'v' => Debug::VERBOSE_1,
-                 'vv' => Debug::VERBOSE_2,
-                 'vvv' => Debug::VERBOSE_3,
-               ];
-
-               Debug::getWriter()->setVerboseLevel($values[$ev->getData('name')]);
-            }),
-         Field::boolean('no-ansi')
-            ->setDescription('disable colors debug messages')
-            ->on('parse', function(Event $ev) {
-               Debug::getWriter()->disableColors();
-            }),
+            ->on('parse', __CLASS__.'::setVerboseLevel'),
          Field::boolean('stats')
             ->setDescription('show execution time and memory usage on quit')
             ->setExportHandler(Field::EXPORT_SKIP)
-            ->on('parse', function(Event $ev) {
-               # register a func that will register the func to output stats
-               # this ensures that the stats output gets executed last
-               register_shutdown_function(function() {
-            register_shutdown_function(function() {
-               $memory = File::formatSize(memory_get_peak_usage(), 2);
-               $time = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
-               $time = number_format($time, 4);
-               echo "completed in $time seconds using $memory of memory\n";
-            });
-               });
-            })
-      );
-      parent::setTask($task);
+            ->on('parse', __CLASS__.'::registerStatsShutdownFunction'),
+         Field::boolean('no-ansi')
+            ->setDescription('disable colors debug messages')
+            ->setExportHandler(Field::EXPORT_SKIP)
+            ->on('parse', __CLASS__.'::disableStyledOutput')
+      ];
    }
 
    /**
     * {@inheritdoc}
     */
-   public function run($task, $data)
+   public function run($data)
    {
-      if (($task instanceof Task) === false) {
+      if (!is_array($data)) {
          throw new InvalidArgumentException(
-            "invalid value provided for 'task'; expecting an instance of ".
-            "sndsgd\\Task or an instance of sndsgd\\task\\Collection"
+            "invalid value provided for 'data'; expecting in indexed array ".
+            "of command line options (use \$argv)"
          );
-      }
-
-      if (($writer = Debug::getWriter()) === null) {
-         $writer = new Writer;
-         $writer->setStream(Writer::STDERR);
-         Debug::setWriter($writer);
       }
 
       try {
-         $this->setTask($task);
-         $fc = $task->getFieldCollection();
-         $parser = new ArgumentParser(array_slice($data, 1));
-         $parser->parseInto($fc);
-         if ($fc->validate() === false) {
-            $msg = $this->formatValidationErrors($fc->getValidationErrors());
-            Debug::error($msg);
-         }
+         $parser = new ArgumentParser(array_slice($data, 1));         
+         $parser->parseInto($this->task);
       }
+      // UnknownFieldException: value for undefined field encountered
+      // UnexpectedValueException: unexpected unnamed argument encountered
       catch (Exception $ex) {
-         $msg = $ex->getMessage();
-         (Str::endsWith($msg, PHP_EOL) === false) && $msg .= "\n";
-         Debug::error($msg);
-      }
-
-      return $this->task->run($fc->exportValues());
-   }
-
-   /**
-    * {@inheritdoc}
-    */
-   protected function getTaskFromCollection(Collection $collection, $data)
-   {
-      $tasks = $collection->getTasks();
-      $taskname = $this->parser->extractTask($tasks);
-      if ($taskname === null) {
-         Debug::error("unknown command '$taskname'\n");
-      }
-      return $collection->getTask($taskname);
-   }
-
-   /**
-    * {@inheritdoc}
-    */
-   public function formatValidationErrors(array $errors)
-   {
-      $tmp = [];
-      $len = count($errors);
-      if ($len === 0) {
-         throw new InvalidArgumentException(
-            "invalid value provided for 'errors'; expecting an array that ".
-            "contains at least one instance of sndsgd\\field\\ValidationError"
+         $cmd = Cli::getScriptName();
+         Env::error(
+            $ex->getMessage()."\n".
+            "use '@[bold]$cmd --help@[reset]' for help\n\n"
          );
       }
 
-      $noun = ($len === 1) ? 'option' : 'options';
-      $tmp = ["failed to process $noun"];
-      foreach ($errors as $error) {
-         $name = $error->getName();
-         $message = $error->getMessage();
-         $tmp[] = " @[bold]{$name}@[reset] ← {$message}";
+      if ($this->task->validate() === false) {
+         $validationErrors = $this->task->getValidationErrors();
+         Env::error($this->formatValidationErrors($validationErrors));
       }
-      return implode(PHP_EOL, array_unique($tmp)).PHP_EOL;
+      return $this->task->run();
    }
 }

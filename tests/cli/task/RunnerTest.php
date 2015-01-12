@@ -1,35 +1,36 @@
 <?php
 
+namespace sndsgd\cli\task;
+
 use \org\bovigo\vfs\vfsStream;
-use \sndsgd\cli\task\Runner;
-use \sndsgd\Debug;
-use \sndsgd\cli\debug\Writer;
+use \sndsgd\cli\env\Controller;
+use \sndsgd\Env;
+use \sndsgd\Event;
 use \sndsgd\Field;
 use \sndsgd\field\rule\Required;
 
-
+/**
+ * @codeCoverageIgnore
+ */
 class ExampleTask extends \sndsgd\Task
 {
-   public function __construct()
+   const DESCRIPTION = "a task for testing sndsgd\\cli\\task\\Runner";
+
+   public function __construct(array $fields = null)
    {
-      parent::__construct();
-      $fc = $this->getFieldCollection();
-      $fc->addFields(
+      parent::__construct($fields);
+      $this->addFields([
          Field::float('value')
             ->setExportHandler(Field::EXPORT_ARRAY)
             ->addRules(new Required)
-      );
+      ]);
    }
 
-   public function getDescription()
+   public function run()
    {
-      return "a task for testing sndsgd\\cli\\task\\Runner";
-   }
-
-   public function run(array $options)
-   {
+      $opts = $this->exportValues();
       $ret = 0;
-      foreach ($options['value'] as $value) {
+      foreach ($opts['value'] as $value) {
          $ret += $value;
       }
       return $ret;
@@ -37,10 +38,16 @@ class ExampleTask extends \sndsgd\Task
 }
 
 
-class RunnerTest extends PHPUnit_Framework_TestCase
+/**
+ * @coversDefaultClass \sndsgd\cli\task\Runner
+ */
+class RunnerTest extends \PHPUnit_Framework_TestCase
 {
    protected $stream;
 
+   /**
+    * @coversNothing
+    */
    public function setUp()
    {
       # since the test is writing to a file, only the last value
@@ -49,21 +56,126 @@ class RunnerTest extends PHPUnit_Framework_TestCase
       vfsStream::newFile('test', 0664)->at($root);
       $this->stream = vfsStream::url('root/test');
 
-      $this->writer = new Writer;
-      $this->writer->setStream($this->stream);
-      $this->writer->setVerboseLevel(Debug::VERBOSE_1);
-      Debug::setWriter($this->writer);
-
+      $this->controller = new Controller;
+      $this->controller->setStream($this->stream);
+      Env::setController($this->controller);
+      Env::setVerboseLevel(Env::V);
    }
 
+   /**
+    * @coversNothing
+    */
+   private function getLoggedContents()
+   {
+      return file_get_contents($this->stream);
+   }
+
+   /**
+    * @coversNothing
+    */
+   private function getParseEventObject($name)
+   {
+      $runner = $this->getMockBuilder('sndsgd\\cli\\task\\Runner')
+         ->setConstructorArgs(['sndsgd\\cli\\task\\ExampleTask'])
+         ->getMock();
+
+      $reflection = new \ReflectionClass('sndsgd\\cli\\task\\Runner');
+      $property = $reflection->getProperty('task');
+      $property->setAccessible(true);
+      return new Event('parse', [ 
+         'task' => $property->getValue($runner),
+         'name' => $name
+      ]);
+   }
+
+   /**
+    * @coversNothing
+    */
+   private function getMockedController()
+   {
+      $class = 'sndsgd\\cli\\env\\Controller';
+      $controller = $this->getMockBuilder($class)->getMock();
+      $controller->method('terminate')->willReturn(true);
+      return $controller;
+   }
+
+   /**
+    * @covers ::showUsageStats
+    */
+   public function testGetStats()
+   {
+      Runner::showUsageStats();
+      $regex = '/processed in (.*?) seconds using (.*?) of memory/';
+      $this->assertRegExp($regex, $this->getLoggedContents());
+   }
+
+   /**
+    * @covers ::showHelp
+    */
+   public function testShowHelp()
+   {
+      Env::setController($this->getMockedController());
+      $ev = $this->getParseEventObject('help');
+      Runner::showHelp($ev);
+   }
+
+   /**
+    * @covers ::showVersionInformation
+    */
+   public function testShowVersionInformation()
+   {
+      Env::setController($this->getMockedController());
+      $ev = $this->getParseEventObject('version');
+      Runner::showVersionInformation($ev);
+   }
+
+   /**
+    * @covers ::__construct
+    */
+   public function testConstructorCreateController()
+   {
+      Env::setController(null);
+      $runner = new Runner('sndsgd\\cli\\task\\ExampleTask');
+   }
+   
+   /**
+    * @covers \sndsgd\cli\task\Runner
+    */
    public function testPass()
    {
       $args = ['cmdname', '-vvv', '-stats', '-value', '1', '-value', '2'];
-
-      $task = new ExampleTask;
-      $runner = new Runner;
-      $result = $runner->run($task, $args);
+      $runner = new Runner('sndsgd\\cli\\task\\ExampleTask');
+      $result = $runner->run($args);
       $this->assertEquals(3, $result);
    }
 
+   public function testDisableStyledOutput()
+   {
+      $runner = new Runner('sndsgd\\cli\\task\\ExampleTask');
+      $runner->run(['cmdname', '-no-ansi', '-value', '1', '-value', '2']);
+   }
+
+   /**
+    * @expectedException InvalidArgumentException
+    */
+   public function testRunInvalidArgs()
+   {
+      $runner = new Runner('sndsgd\\cli\\task\\ExampleTask');
+      $runner->run(42);
+   }
+
+   /**
+    * @covers ::run
+    */
+   public function testRunInvalidParameter()
+   {
+      $controller = $this->getMockedController();
+      $controller->setStream($this->stream);
+      Env::setController($controller);
+      $runner = new Runner('sndsgd\\cli\\task\\ExampleTask');
+      $runner->run(['cmdname', '-unknown']);
+
+      // $regex = "/use '(.*?)' for help/";
+      // $this->assertRegExp($regex, $this->getLoggedContents());
+   }
 }

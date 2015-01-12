@@ -1,9 +1,12 @@
 <?php
 
-namespace sndsgd\cli\debug;
+namespace sndsgd\cli\env;
 
 
-class Writer extends \sndsgd\debug\Writer
+/**
+ * A debug writer for command line consoles
+ */
+class Controller extends \sndsgd\env\Controller
 {
    // output streams
    const STDOUT = 'php://stdout';
@@ -98,67 +101,42 @@ class Writer extends \sndsgd\debug\Writer
    /**
     * {@inheritdoc}
     */
-   public function write($msg, $code, $force = false)
+   public function write($message)
    {
-      if ($this->shouldWrite($force, $code)) {
-         file_put_contents($this->stream, $this->formatMessage($msg));
-      }
+      $map = $this->extractStyles($message);
+      $message = $this->applyStyles($map, $message);
+      file_put_contents($this->stream, $message);
    }
 
    /**
-    * Replace style tags with the appropriate character sequences
-    *
-    * @param string $content
-    * @return string
+    * {@inheritdoc}
     */
-   private function formatMessage($content)
+   protected function applyStyles(array $map, $message)
    {
-      $regex = '/@\\[([a-z-:+ ]+)\\]/';
-      if (preg_match_all($regex, $content, $matches, PREG_SET_ORDER)) {
-         foreach ($matches as $captures) {
-            $match = $captures[0];
-            $keys = explode('+', $captures[1]);
-            $codes = [];
-            foreach ($keys as $key) {
-               $key = trim($key);
-               if (array_key_exists($key, $this->styleCodes)) {
-	          $codes[] = $this->styleCodes[$key];
-               }
-            }
-
-            if ($codes) {
-               $replace = ($this->colors)
-                  ? "\033[".implode(';', $codes).'m'
-                  : '';
-               $content = str_replace($match, $replace, $content);
+      foreach ($map as $match => $codes) {
+         $tmp = [];
+         foreach ($codes as $code) {
+            $code = trim($code);
+            if (array_key_exists($code, $this->styleCodes)) {
+               $tmp[] = $this->styleCodes[$code];
             }
          }
+         if ($tmp) {
+            $replace = ($this->showStyles)
+               ? "\033[".implode(';', $tmp).'m'
+               : '';
+            $message = str_replace($match, $replace, $message);
+         }
       }
-      return $content;
+      return $message;
    }
 
    /**
     * {@inheritdoc}
     */
-   public function info($msg, $verboseLevel)
+   public function error($msg)
    {
-      $this->write($msg, $verboseLevel);
-   }
-
-   /**
-    * {@inheritdoc}
-    */
-   public function warn($msg, $verboseLevel)
-   {
-      $this->write("@[bg:yellow+black+bold] Warning @[reset] $msg", $verboseLevel);
-   }
-
-   /**
-    * {@inheritdoc}
-    */
-   public function error($msg, $exitcode)
-   {
-      $this->write("@[bg:red+white+bold] Error @[reset] $msg", $exitcode, true);
-      ($exitcode !== null) && exit($exitcode);
+      $this->write("@[bg:red+bold+white] Error @[reset] $msg");
    }
 }
+
