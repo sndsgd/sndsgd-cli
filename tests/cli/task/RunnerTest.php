@@ -7,7 +7,8 @@ use \sndsgd\cli\env\Controller;
 use \sndsgd\Env;
 use \sndsgd\Event;
 use \sndsgd\Field;
-use \sndsgd\field\rule\Required;
+use \sndsgd\field\FloatField;
+use \sndsgd\field\rule\RequiredRule;
 
 /**
  * @codeCoverageIgnore
@@ -20,9 +21,9 @@ class ExampleTask extends \sndsgd\Task
    {
       parent::__construct($fields);
       $this->addFields([
-         Field::float('value')
+         (new FloatField('value'))
             ->setExportHandler(Field::EXPORT_ARRAY)
-            ->addRules(new Required)
+            ->addRule(new RequiredRule)
       ]);
    }
 

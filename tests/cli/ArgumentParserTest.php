@@ -5,6 +5,10 @@ namespace sndsgd\cli;
 use \ReflectionClass;
 use \sndsgd\Field;
 use \sndsgd\field\Collection;
+use \sndsgd\field\BooleanField;
+use \sndsgd\field\StringField;
+use \sndsgd\field\IntegerField;
+use \sndsgd\field\FloatField;
 
 
 /**
@@ -18,16 +22,16 @@ class ArgumentParserTest extends \PHPUnit_Framework_TestCase
    public function setUp()
    {
       $this->fc = new Collection;
-      $this->fc->addFields(
-         Field::boolean('bool1'),
-         Field::boolean('bool2'),
-         Field::string('string1'),
-         Field::string('string2'),
-         Field::integer('integer1'),
-         Field::integer('integer2'),
-         Field::float('float1'),
-         Field::float('float2')
-      );
+      $this->fc->addFields([
+         new BooleanField('bool1'),
+         new BooleanField('bool2'),
+         new StringField('string1'),
+         new StringField('string2'),
+         new IntegerField('integer1'),
+         new IntegerField('integer2'),
+         new FloatField('float1'),
+         new FloatField('float2')
+      ]);
    }
 
    /**

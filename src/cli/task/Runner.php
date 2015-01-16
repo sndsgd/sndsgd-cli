@@ -11,6 +11,7 @@ use \sndsgd\cli\task\HelpGenerator;
 use \sndsgd\Env;
 use \sndsgd\Event;
 use \sndsgd\Field;
+use \sndsgd\field\BooleanField;
 use \sndsgd\field\UnknownFieldException;
 use \sndsgd\Task;
 use \sndsgd\File;
@@ -141,27 +142,29 @@ class Runner extends \sndsgd\task\Runner
    private function createFields()
    {
       return [
-         Field::boolean('help', '?')
+         (new BooleanField('help'))
+            ->addAliases('?')
             ->setDescription('show this help text')
             ->setExportHandler(Field::EXPORT_SKIP)
             ->on('parse', __CLASS__.'::showHelp'),
-         Field::boolean('version')
+         (new BooleanField('version'))
             ->setDescription('show the current version information')
             ->setExportHandler(Field::EXPORT_SKIP)
             ->on('parse', __CLASS__.'::showVersionInformation'),
-         Field::boolean('quiet')
+         (new BooleanField('quiet'))
             ->setDescription('silence all debug messages')
             ->setExportHandler(Field::EXPORT_SKIP)
             ->on('parse', __CLASS__.'::setVerboseLevel'),
-         Field::boolean('verbose', 'v', 'vv', 'vvv')
+         (new BooleanField('verbose'))
+            ->addAliases('verbose', 'v', 'vv', 'vvv')
             ->setDescription('set the verbosity of output')
             ->setExportHandler(Field::EXPORT_SKIP)
             ->on('parse', __CLASS__.'::setVerboseLevel'),
-         Field::boolean('stats')
+         (new BooleanField('stats'))
             ->setDescription('show execution time and memory usage on quit')
             ->setExportHandler(Field::EXPORT_SKIP)
             ->on('parse', __CLASS__.'::registerStatsShutdownFunction'),
-         Field::boolean('no-ansi')
+         (new BooleanField('no-ansi'))
             ->setDescription('disable colors debug messages')
             ->setExportHandler(Field::EXPORT_SKIP)
             ->on('parse', __CLASS__.'::disableStyledOutput')
@@ -195,9 +198,9 @@ class Runner extends \sndsgd\task\Runner
       }
 
       if ($this->task->validate() === false) {
-         $validationErrors = $this->task->getValidationErrors();
-         Env::error($this->formatValidationErrors($validationErrors));
+         $errors = $this->task->getErrors();
+         Env::error($this->formatErrors($errors));
       }
-      return $this->task->run();
+      return $this->task->run($this->task->exportValues());
    }
 }
