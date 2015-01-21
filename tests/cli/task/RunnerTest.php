@@ -83,10 +83,12 @@ class RunnerTest extends \PHPUnit_Framework_TestCase
       $reflection = new \ReflectionClass('sndsgd\\cli\\task\\Runner');
       $property = $reflection->getProperty('task');
       $property->setAccessible(true);
-      return new Event('parse', [ 
+      $event = new Event('parse');
+      $event->setData([ 
          'task' => $property->getValue($runner),
          'name' => $name
       ]);
+      return $event;
    }
 
    /**

@@ -117,9 +117,9 @@ class Runner extends \sndsgd\task\Runner
     * Constructor
     * 
     * @param string $classname The name of a task class
-    * @param array.<sndsgd\Field>|null $fields Fields to inject into the task
+    * @param array.<sndsgd\Field> $fields Fields to inject into the task
     */
-   public function __construct($classname, array $fields = null)
+   public function __construct($classname, array $fields = [])
    {
       if (($env = Env::getController()) === null) {
          $env = new EnvController;
@@ -127,10 +127,7 @@ class Runner extends \sndsgd\task\Runner
          Env::setController($env);
       }
 
-      $fields = ($fields === null)
-         ? $this->createFields()
-         : array_merge($fields, $this->createRelevantFields());
-
+      $fields = array_merge($fields, $this->createFields());
       parent::__construct($classname, $fields);
    }
 
