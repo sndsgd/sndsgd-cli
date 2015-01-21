@@ -47,7 +47,7 @@ class Runner extends \sndsgd\task\Runner
    {
       $task = $ev->getData('task');
       $script = Cli::getScriptName();
-      $version = $task->getVersion();
+      $version = $task::VERSION;
       Env::log("$script version $version\n");
       Env::terminate(0);
    }
