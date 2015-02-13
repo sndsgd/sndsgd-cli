@@ -18,5 +18,5 @@ install:
 script:
   - phpunit --coverage-clover tests/coverage-clover.xml
 
-after_script:
-  - bin/aftertest
+after_success:
+  - '[ "5.5" = "$(phpenv version-name)" ] && composer require satooshi/php-coveralls:dev-master && vendor/bin/coveralls -v'
