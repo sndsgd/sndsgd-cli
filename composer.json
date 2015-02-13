@@ -1,6 +1,6 @@
 {
    "name": "sndsgd/cli",
-   "description": "A collection of tools for creating php cli scripts",
+   "description": "Tools for creating PHP cli scripts",
    "type": "library",
    "homepage": "https://github.com/sndsgd-cli",
    "license": "MIT",
