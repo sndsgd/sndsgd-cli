@@ -1,33 +1,33 @@
 {
-   "name": "sndsgd/cli",
-   "description": "Tools for creating PHP cli scripts",
-   "type": "library",
-   "homepage": "https://github.com/sndsgd-cli",
-   "license": "MIT",
-   "authors": [
-      {
-         "name": "Russell B",
-         "homepage": "http://snds.gd/"
-      }
-   ],
-   "support": {
-      "issues": "https://github.com/sndsgd/sndsgd-cli/issues",
-      "source": "https://github.com/sndsgd/sndsgd-cli/tree/master"
-   },
-   "require": {
-      "php": ">=5.4.0",
-      "sndsgd/util": "~0.6",
-      "sndsgd/event": "~0.5",
-      "sndsgd/field": "~0.6",
-      "sndsgd/task": "~0.6"
-   },
-   "require-dev": {
-      "phpunit/phpunit": "~4.0",
-      "mikey179/vfsStream": "~1.4.0"
-   },
-   "autoload": {
-      "psr-4": {
-         "sndsgd\\": "src/"
-      }
-   }
+    "name": "sndsgd/cli",
+    "description": "Tools for creating PHP cli scripts",
+    "type": "library",
+    "homepage": "https://github.com/sndsgd-cli",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Russell B",
+            "homepage": "http://snds.gd/"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/sndsgd/sndsgd-cli/issues",
+        "source": "https://github.com/sndsgd/sndsgd-cli/tree/master"
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0",
+        "sndsgd/util": "dev-dev",
+        "sndsgd/event": "dev-dev",
+        "sndsgd/field": "dev-dev",
+        "sndsgd/task": "dev-dev"
+    },
+    "require-dev": {
+        "mikey179/vfsStream": "~1.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "sndsgd\\": "src/"
+        }
+    }
 }
