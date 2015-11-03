@@ -44,6 +44,27 @@ class Cli
    }
 
    /**
+    * Get input from the user
+    * 
+    * @param string $message The message to display
+    * @param boolean $silent Hide characters as the user types
+    * @return string
+    */
+   public static function prompt($message, $silent = false)
+   {
+      if ($silent) {
+         $message = addslashes($message);
+         $cmd = "bash -c 'read -s -p \"".$message."\" val && echo \$val'";
+         $value = rtrim(shell_exec($cmd));
+         echo PHP_EOL;
+      }
+      else {
+         $value = readline($message);
+      }
+      return $value;
+   }
+
+   /**
     * Determine the user that owns the current process
     *
     * @return string the name of the current user
